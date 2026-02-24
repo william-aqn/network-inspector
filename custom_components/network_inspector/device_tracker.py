@@ -57,12 +57,25 @@ class NetworkInspectorDeviceTracker(
         device_name = config_entry.options.get(CONF_DEVICE_NAME, "Unknown")
         self._attr_name = device_name
         self._attr_unique_id = f"{config_entry.entry_id}_tracker"
-        self._attr_device_info = DeviceInfo(
+        # ScannerEntity has @final on device_info that returns None,
+        # blocking _attr_device_info. We override with an explicit property.
+        self._device_info_value = DeviceInfo(
             identifiers={(DOMAIN, config_entry.entry_id)},
             name=device_name,
             manufacturer="Network Inspector",
             model="ICMP Ping Tracker",
         )
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return device info to link this entity to a device.
+
+        ScannerEntity marks device_info as @final returning None.
+        We override it explicitly because @final from typing has no
+        runtime effect, and we need device association in this custom
+        integration.
+        """
+        return self._device_info_value
 
     @property
     def source_type(self) -> SourceType:
