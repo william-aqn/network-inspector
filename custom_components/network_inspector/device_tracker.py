@@ -7,6 +7,7 @@ from typing import Any
 
 from homeassistant.components.device_tracker import ScannerEntity, SourceType
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
@@ -15,6 +16,7 @@ from .const import (
     CONF_CONSIDER_HOME,
     CONF_DEVICE_NAME,
     DEFAULT_CONSIDER_HOME,
+    DOMAIN,
 )
 from .coordinator import (
     NetworkInspectorConfigEntry,
@@ -52,8 +54,15 @@ class NetworkInspectorDeviceTracker(
                 config_entry.options.get(CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME)
             )
         )
-        self._attr_name = config_entry.options.get(CONF_DEVICE_NAME, "Unknown")
+        device_name = config_entry.options.get(CONF_DEVICE_NAME, "Unknown")
+        self._attr_name = device_name
         self._attr_unique_id = f"{config_entry.entry_id}_tracker"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name=device_name,
+            manufacturer="Network Inspector",
+            model="ICMP Ping Tracker",
+        )
 
     @property
     def source_type(self) -> SourceType:

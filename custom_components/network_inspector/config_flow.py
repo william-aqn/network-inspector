@@ -48,7 +48,8 @@ class NetworkInspectorConfigFlow(ConfigFlow, domain=DOMAIN):
             if not is_ip_address(user_input[CONF_HOST]):
                 errors["base"] = "invalid_ip_address"
             else:
-                self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+                await self.async_set_unique_id(user_input[CONF_HOST])
+                self._abort_if_unique_id_configured()
 
                 return self.async_create_entry(
                     title=user_input[CONF_DEVICE_NAME],
