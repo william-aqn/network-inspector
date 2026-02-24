@@ -26,15 +26,22 @@
     }
   },
   "options": {
+    "error": {
+      "invalid_ip_address": "Please enter a valid IP address."
+    },
     "step": {
       "init": {
         "data": {
+          "host": "IP address",
+          "device_name": "Device name",
           "scan_interval": "Polling interval",
           "consider_home": "Consider home interval",
           "ping_count": "Ping count",
           "ping_timeout": "Ping timeout"
         },
         "data_description": {
+          "host": "The IP address of the device to ping.",
+          "device_name": "A friendly name for this device.",
           "scan_interval": "How often to ping the device (in seconds).",
           "consider_home": "Time to wait after the last successful ping before marking as away (in seconds).",
           "ping_count": "Number of ICMP packets to send per poll.",

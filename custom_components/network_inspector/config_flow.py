@@ -119,18 +119,43 @@ class NetworkInspectorOptionsFlow(OptionsFlowWithReload):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Manage the options."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            # Ensure integer types
-            for key in (CONF_SCAN_INTERVAL, CONF_CONSIDER_HOME, CONF_PING_COUNT, CONF_PING_TIMEOUT):
-                if key in new_options:
-                    new_options[key] = int(new_options[key])
-            return self.async_create_entry(title="", data=new_options)
+            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
+
+            if not is_ip_address(user_input[CONF_HOST]):
+                errors["base"] = "invalid_ip_address"
+            else:
+                new_options = {**self.config_entry.options, **user_input}
+                # Ensure integer types
+                for key in (CONF_SCAN_INTERVAL, CONF_CONSIDER_HOME, CONF_PING_COUNT, CONF_PING_TIMEOUT):
+                    if key in new_options:
+                        new_options[key] = int(new_options[key])
+
+                # Update unique_id and title if host or name changed
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    unique_id=new_options[CONF_HOST],
+                    title=new_options[CONF_DEVICE_NAME],
+                )
+
+                return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
+                    vol.Required(
+                        CONF_HOST,
+                        default=self.config_entry.options.get(CONF_HOST, ""),
+                    ): str,
+                    vol.Required(
+                        CONF_DEVICE_NAME,
+                        default=self.config_entry.options.get(
+                            CONF_DEVICE_NAME, ""
+                        ),
+                    ): str,
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         default=self.config_entry.options.get(
@@ -186,4 +211,5 @@ class NetworkInspectorOptionsFlow(OptionsFlowWithReload):
                     ),
                 }
             ),
+            errors=errors,
         )
